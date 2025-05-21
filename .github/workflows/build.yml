@@ -54,7 +54,7 @@ jobs:
       containerfile: Dockerfile
       image-name: "${{ github.event.repository.name }}"
       previous-image: "${{ needs.set-env.outputs.IMAGE_NAME }}:${{ needs.set-env.outputs.LATEST_TAG }}"
-      platforms: "amd64,arm64"
+      platforms: "amd64"
       skip-maximize-build-space: true
       image-path: "${{ github.repository_owner }}"
       REGISTRY: "ghcr.io"
@@ -104,7 +104,7 @@ jobs:
       update_origin_ref: "${{ needs.set-env.outputs.IMAGE_NAME }}:${{ needs.set-env.outputs.LATEST_TAG }}"
       update_is_signed: ${{ needs.set-env.outputs.IS_SIGNED == 'true' }}
       config-file: ./iso.toml
-      platforms: "amd64,arm64"
+      platforms: "amd64"
       REGISTRY: "ghcr.io"
       REGISTRY_USER: "${{ github.actor }}"
     secrets:
