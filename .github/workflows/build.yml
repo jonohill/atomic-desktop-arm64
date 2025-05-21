@@ -70,7 +70,7 @@ jobs:
       REGISTRY: ${{ needs.set-env.outputs.REGISTRY }}
       REGISTRY_USER: ${{ needs.set-env.outputs.REGISTRY_USER }}
     secrets:
-      REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      REGISTRY_TOKEN: ${{ secrets.QUAY_PASSWORD }}
       SIGNING_SECRET: ${{ secrets.SIGNING_SECRET }}
     permissions:
       contents: read
@@ -87,7 +87,7 @@ jobs:
 
     steps:
       - name: Login to Container Registry
-        run: echo ${{ secrets.GITHUB_TOKEN }} | podman login -u ${{ github.actor }} --password-stdin ${{ needs.set-env.outputs.REGISTRY }}
+        run: echo ${{ secrets.QUAY_PASSWORD }} | podman login -u ${{ github.actor }} --password-stdin ${{ needs.set-env.outputs.REGISTRY }}
 
       - name: Test container
         run: |
@@ -118,7 +118,7 @@ jobs:
       REGISTRY: ${{ needs.set-env.outputs.REGISTRY }}
       REGISTRY_USER: ${{ needs.set-env.outputs.REGISTRY_USER }}
     secrets:
-      REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      REGISTRY_TOKEN: ${{ secrets.QUAY_PASSWORD }}
 
   promote-image:
     name: Promote image
@@ -134,7 +134,7 @@ jobs:
       REGISTRY: ${{ needs.set-env.outputs.REGISTRY }}
       REGISTRY_USER: ${{ needs.set-env.outputs.REGISTRY_USER }}
     secrets:
-      REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      REGISTRY_TOKEN: ${{ secrets.QUAY_PASSWORD }}
     permissions:
       packages: write
 
