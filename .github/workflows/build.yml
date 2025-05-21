@@ -1,0 +1,142 @@
+---
+name: Build image
+on:
+  pull_request:
+  push:
+    branches:
+      - 'main'
+    paths-ignore:
+      - '**/README.md'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  set-env:
+    runs-on: ubuntu-latest
+    outputs:
+      LATEST_TAG: ${{ steps.set.outputs.LATEST_TAG }}
+      IMAGE_NAME: ${{ steps.set.outputs.IMAGE_NAME }}
+      IS_SIGNED: ${{ steps.set.outputs.IS_SIGNED }}
+    steps:
+      - name: Set environment variables
+        id: set
+        run: |
+          # Pick a latest tag based on the event type
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "LATEST_TAG=pr-${{ github.event.number }}" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" != "refs/heads/${{ github.event.repository.default_branch }}" ]]; then
+            echo "LATEST_TAG=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "LATEST_TAG=latest" >> $GITHUB_OUTPUT
+          fi
+
+          echo "IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}" >> $GITHUB_OUTPUT
+
+          # This is a workaround so that the expansion of secrets.SIGNING_SECRET doesn't break the if statement
+          SECRET=$(cat <<EOF
+          ${{ secrets.SIGNING_SECRET }}
+          EOF
+          )
+          if [ -z "${SECRET}" ]; then
+            echo "IS_SIGNED=false" >> $GITHUB_OUTPUT
+          else
+            echo "IS_SIGNED=true" >> $GITHUB_OUTPUT
+          fi
+
+  build-image:
+    name: Build image
+    uses: AlmaLinux/desktop-bootc-ci/.github/workflows/build-image.yml@v1
+    needs: set-env
+    with:
+      containerfile: Dockerfile
+      image-name: "${{ github.event.repository.name }}"
+      previous-image: "${{ needs.set-env.outputs.IMAGE_NAME }}:${{ needs.set-env.outputs.LATEST_TAG }}"
+      platforms: "amd64,arm64"
+      skip-maximize-build-space: true
+      image-path: "${{ github.repository_owner }}"
+      REGISTRY: "ghcr.io"
+      REGISTRY_USER: "${{ github.actor }}"
+    secrets:
+      REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      SIGNING_SECRET: ${{ secrets.SIGNING_SECRET }}
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+
+  test-image:
+    name: Test image
+    runs-on: ubuntu-latest
+    needs: build-image
+
+    env:
+      IMAGE_REF: "${{ needs.build-image.outputs.image-ref }}@${{ needs.build-image.outputs.digest }}"
+
+    steps:
+      - name: Login to Container Registry
+        run: echo ${{ secrets.GITHUB_TOKEN }} | podman login -u ${{ github.actor }} --password-stdin ghcr.io
+
+      - name: Test container
+        run: |
+          # Create a short script to test the image using heredoc
+          cat << 'EOF' > /tmp/test.sh
+          set -ex
+
+          cat /etc/os-release
+          bootc -V
+          EOF
+
+          podman run --rm \
+            -v /tmp/test.sh:/tmp/test.sh \
+            ${{ env.IMAGE_REF }} \
+            /bin/bash /tmp/test.sh
+
+  build-iso:
+    name: Build ISO
+    needs: [set-env, build-image, test-image]
+    uses: AlmaLinux/desktop-bootc-ci/.github/workflows/build-iso.yml@v1
+    with:
+      image-name: "${{ github.event.repository.name }}"
+      image: ${{ needs.build-image.outputs.image-ref }}@${{ needs.build-image.outputs.digest }}
+      update_origin_ref: "${{ needs.set-env.outputs.IMAGE_NAME }}:${{ needs.set-env.outputs.LATEST_TAG }}"
+      update_is_signed: ${{ needs.set-env.outputs.IS_SIGNED == 'true' }}
+      config-file: ./iso.toml
+      platforms: "amd64,arm64"
+      REGISTRY: "ghcr.io"
+      REGISTRY_USER: "${{ github.actor }}"
+    secrets:
+      REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  promote-image:
+    name: Promote image
+    needs: [set-env, build-image, test-image]
+    if: ${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
+    uses: AlmaLinux/desktop-bootc-ci/.github/workflows/retag-image.yml@v1
+    with:
+      image: ${{ needs.build-image.outputs.image-ref }}@${{ needs.build-image.outputs.digest }}
+      tag: |
+        ${{ needs.set-env.outputs.LATEST_TAG }}
+        ${{ needs.build-image.outputs.redhat-version-id }}
+        ${{ needs.build-image.outputs.version }}
+      REGISTRY: "ghcr.io"
+      REGISTRY_USER: "${{ github.actor }}"
+    secrets:
+      REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    permissions:
+      packages: write
+
+  create-release:
+    name: Create Release
+    needs: [set-env, build-image, test-image, promote-image, build-iso]
+    if: ${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
+    uses: AlmaLinux/desktop-bootc-ci/.github/workflows/create-release.yml@v1
+    with:
+      image-name: "${{ github.event.repository.name }}"
+      version: ${{ needs.build-image.outputs.version }}
+      pretty-version: ${{ needs.build-image.outputs.redhat-version-id }}
+      latest-image-ref: "${{ needs.build-image.outputs.image-ref }}:${{ needs.set-env.outputs.LATEST_TAG }}"
+    permissions:
+      contents: write
