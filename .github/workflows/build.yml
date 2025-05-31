@@ -126,6 +126,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.set-env.outputs.MATRIX)}}
+    if: false
     uses: AlmaLinux/desktop-bootc-ci/.github/workflows/build-iso.yml@v2
     with:
       image-name: "${{ github.event.repository.name }}-${{ matrix.variant }}"
