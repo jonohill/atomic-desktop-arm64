@@ -13,10 +13,11 @@ fi
 CONTAINER_DIR="/etc/containers"
 CONTAINER_PKI="/etc/pki/containers"
 IMAGE_NAME_FILE="${IMAGE_NAME//\//_}"
+BACKUP_KEY="atomic-sig-backup"
 
 mkdir -p $CONTAINER_PKI
 cp ${CONTEXT_PATH}/keys/cosign.pub ${CONTAINER_PKI}/${IMAGE_NAME_FILE}.pub
-cp ${CONTEXT_PATH}/keys/atomic-sig-backup.pub ${CONTAINER_PKI}/atomic-sig-backup.pub
+cp ${CONTEXT_PATH}/keys/${BACKUP_KEY}.pub ${CONTAINER_PKI}/${BACKUP_KEY}.pub
 
 POLICY_FILE="${CONTAINER_DIR}/policy.json"
 
@@ -26,12 +27,12 @@ POLICY_FILE="${CONTAINER_DIR}/policy.json"
 jq --arg image_registry "${IMAGE_REGISTRY}" \
    --arg image_name "${IMAGE_NAME}" \
    --arg pki_path "${CONTAINER_PKI}/${IMAGE_NAME_FILE}.pub" \
+   --arg pki_backup "${CONTAINER_PKI}/${BACKUP_KEY}.pub" \
    '.transports.docker |=
     { ($image_registry + "/" + $image_name): [
         {
             "type": "sigstoreSigned",
-            "keyPaths": [$pki_path,
-                         "/etc/pki/containers/atomic-sig-backup.pub"],
+            "keyPaths": [$pki_path, $pki_backup],
             "signedIdentity": {
                 "type": "matchRepository"
             }
