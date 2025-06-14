@@ -44,7 +44,7 @@ jobs:
           REGISTRY=quay.io
           REGISTRY_USER="almalinuxorg+airibarr_bot"
           IMAGE_PATH="almalinuxorg"
-          IMAGE_NAME=${{ github.event.repository.name }}
+          IMAGE_NAME="atomic-desktop"
           PLATFORMS="amd64"
           VARIANTS="gnome,kde"
 
