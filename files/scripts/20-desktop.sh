@@ -9,11 +9,10 @@ if [[ "${VARIANT}" == "gnome" ]]; then
     systemctl enable gdm
 
 elif [[ "${VARIANT}" == "kde" ]]; then
-    true
-    # dnf install -y \
-    #     @"KDE Plasma Workspaces"
+    dnf install -y \
+        @"KDE Plasma Workspaces"
 
-    # systemctl enable sddm
+    systemctl enable sddm
 
 else
     true
