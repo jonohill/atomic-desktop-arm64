@@ -16,6 +16,7 @@ IMAGE_NAME_FILE="${IMAGE_NAME//\//_}"
 
 mkdir -p $CONTAINER_PKI
 cp ${CONTEXT_PATH}/keys/cosign.pub ${CONTAINER_PKI}/${IMAGE_NAME_FILE}.pub
+cp ${CONTEXT_PATH}/keys/atomic-sig-backup.pub ${CONTAINER_PKI}/atomic-sig-backup.pub
 
 POLICY_FILE="${CONTAINER_DIR}/policy.json"
 
@@ -29,7 +30,8 @@ jq --arg image_registry "${IMAGE_REGISTRY}" \
     { ($image_registry + "/" + $image_name): [
         {
             "type": "sigstoreSigned",
-            "keyPath": $pki_path,
+            "keyPaths": [$pki_path,
+                         "/etc/pki/containers/atomic-sig-backup.pub"],
             "signedIdentity": {
                 "type": "matchRepository"
             }
