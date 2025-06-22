@@ -90,7 +90,11 @@ jobs:
         id: prepare-release
         shell: bash
         run: |
-          echo "COUNT=$(ls /tmp/changelogs/*.txt 2> /dev/null | wc -w)" >> $GITHUB_OUTPUT
+          if [[ ! -d /tmp/changelogs ]]; then
+            echo "No changelogs found, skipping release creation"
+            echo "skip=1" >> "$GITHUB_ENV"
+            exit
+          fi
 
           echo "Automated release for version \`${{ needs.build-test-promote.outputs.version }}\`." > ./changelog.md
 
@@ -116,7 +120,7 @@ jobs:
           done
 
       - name: Create Release
-        if: ${{ steps.prepare-release.outputs.COUNT != '0' }}
+        if: ${{ env.skip != '0' }}
         uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8 # v2
         with:
           name: "Version ${{ needs.build-test-promote.outputs.version }}"
