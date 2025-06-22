@@ -71,6 +71,14 @@ jobs:
       image-path: ${{ inputs.image_path }}
       REGISTRY: ${{ inputs.registry }}
       REGISTRY_USER: ${{ inputs.registry_user }}
+      image-description: "AlmaLinux Atomic Desktop - ${{ inputs.variant }}"
+      changelog-snippet: |
+        Major Components:
+            - Kernel: <relver:kernel>
+            - Systemd: <relver:systemd>
+            - Glibc: <relver:glibc>
+            - Bootc: <relver:bootc>
+            - ${{ inputs.variant == 'gnome' && 'GNOME: <version:gdm>' || 'KDE: <version:plasma-desktop>' }}:
       KMS_KEY_ID: ${{ inputs.KMS_KEY_ID }}
       AWS_REGION: ${{ inputs.AWS_REGION }}
       generate-sbom: false
