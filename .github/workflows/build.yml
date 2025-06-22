@@ -10,6 +10,10 @@ on:
       - '**/README.md'
   workflow_dispatch:
 
+  schedule:
+    # run on Saturday at 10:00 UTC
+    - cron:  '*/10 * * * *' # '0 10 * * 6'
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
   cancel-in-progress: true
@@ -86,6 +90,8 @@ jobs:
         id: prepare-release
         shell: bash
         run: |
+          echo "COUNT=$(ls /tmp/changelogs/*.txt 2> /dev/null | wc -w)" >> $GITHUB_OUTPUT
+
           echo "Automated release for version \`${{ needs.build-test-promote.outputs.version }}\`." > ./changelog.md
 
           for changelog in /tmp/changelogs/*.txt; do
@@ -110,6 +116,7 @@ jobs:
           done
 
       - name: Create Release
+        if: ${{ steps.prepare-release.outputs.COUNT != '0' }}
         uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8 # v2
         with:
           name: "Version ${{ needs.build-test-promote.outputs.version }}"
