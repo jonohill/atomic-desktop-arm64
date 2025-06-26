@@ -120,7 +120,7 @@ jobs:
           done
 
       - name: Create Release
-        if: ${{ env.skip != '0' }}
+        if: ${{ env.skip != '1' }}
         uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8 # v2
         with:
           name: "Version ${{ needs.build-test-promote.outputs.version }}"
