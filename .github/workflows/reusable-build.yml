@@ -161,3 +161,4 @@ jobs:
       REGISTRY_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
     permissions:
       packages: write
+      contents: write
