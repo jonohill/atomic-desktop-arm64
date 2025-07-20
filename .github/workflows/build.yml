@@ -68,7 +68,7 @@ jobs:
       REGISTRY_TOKEN: ${{ secrets.QUAY_PASSWORD }}
       AWS_ROLE_ARN: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/SIG_Atomic_GHA
     permissions:
-      contents: write
+      contents: read
       packages: write
       id-token: write
 
