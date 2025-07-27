@@ -8,6 +8,17 @@ These images are the perfect base from which you can build your own Atomic AlmaL
 To make this easier, we've created [a template repository](https://github.com/new?template_name=atomic-respin-template&template_owner=AlmaLinux)
 to get you started. Create your own Atomic AlmaLinux respin in minutes!
 
+# Usage
+
+Download and install from the ISOs:
+* [atomic-desktop-gnome-amd64.iso](https://almalinux-atomic.s3-accelerate.dualstack.amazonaws.com/atomic-desktop/latest/atomic-desktop-gnome-amd64.iso)
+* [atomic-desktop-kde-amd64.iso](https://almalinux-atomic.s3-accelerate.dualstack.amazonaws.com/atomic-desktop/latest/atomic-desktop-kde-amd64.iso)
+
+Bootc images:
+* `quay.io/almalinuxorg/atomic-desktop-gnome`
+* `quay.io/almalinuxorg/atomic-desktop-kde`
+* Cosign public key: [cosign.pub](/cosign.pub)
+
 # Contributing
 
 We welcome contributions to all parts of the AlmaLinux project. If you'd like to get involved, please feel free to reach out through [the chat](https://chat.almalinux.org/almalinux/channels/sigatomic)!
