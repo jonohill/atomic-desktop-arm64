@@ -24,7 +24,8 @@ jobs:
       LATEST_TAG: ${{ steps.set.outputs.LATEST_TAG }}
       REGISTRY: ${{ steps.set.outputs.REGISTRY }}
       REGISTRY_USER: ${{ steps.set.outputs.REGISTRY_USER }}
-      PLATFORMS: ${{ steps.set.outputs.PLATFORMS }}
+      #PLATFORMS: ${{ steps.set.outputs.PLATFORMS }}
+      PLATFORMS: "amd64" # v2 doesn't work right now
       IMAGE_PATH: ${{ steps.set.outputs.IMAGE_PATH }}
       IMAGE_NAME: ${{ steps.set.outputs.IMAGE_NAME }}
       IMAGE_REF: ${{ steps.set.outputs.IMAGE_REF }}
