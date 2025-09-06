@@ -3,8 +3,18 @@
 set -xeuo pipefail
 
 if [[ "${VARIANT}" == "gnome" ]]; then
-    dnf install -y \
-        @"Workstation"
+    dnf groupinstall -y \
+        "Common NetworkManager submodules" \
+        "Core" \
+        "Fonts" \
+        "GNOME" \
+        "Guest Desktop Agents" \
+        "Hardware Support" \
+        "Internet Browser" \
+        "Multimedia" \
+        "Printing Client" \
+        "Standard" \
+        "Workstation product core"
 
     systemctl enable gdm
 

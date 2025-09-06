@@ -52,9 +52,9 @@ runs:
           echo "LATEST_TAG=latest" >> $GITHUB_OUTPUT
         fi
 
-        REGISTRY=quay.io
-        REGISTRY_USER="almalinuxorg+airibarr_bot"
-        IMAGE_PATH="almalinuxorg"
+        REGISTRY=ghcr.io
+        REGISTRY_USER=${{ github.actor }}
+        IMAGE_PATH=${{ github.repository_owner }}
         IMAGE_NAME="atomic-desktop"
         PLATFORMS="amd64,amd64/v2"
         VARIANTS="gnome,kde"
