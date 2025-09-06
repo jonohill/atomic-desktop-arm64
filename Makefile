@@ -5,7 +5,7 @@ PODMAN = $(SUDO) podman
 IMAGE_NAME ?= localhost/myimage
 CONTAINER_FILE ?= ./Dockerfile
 VARIANT ?= gnome
-PLATFORM = linux/amd64
+PLATFORM = linux/arm64
 IMAGE_CONFIG ?= ./iso.toml\
 
 
@@ -68,12 +68,12 @@ qcow2:
 	make bib_image IMAGE_TYPE=qcow2
 
 run-qemu-qcow:
-	qemu-system-x86_64 \
-		-M accel=kvm \
-		-cpu host \
+	qemu-system-aarch64 \
+		-M virt \
+		-cpu cortex-a72 \
 		-smp 2 \
 		-m 4096 \
-		-bios /usr/share/OVMF/x64/OVMF.4m.fd \
+		-bios /usr/share/AAVMF/AAVMF_CODE.fd \
 		-serial stdio \
 		-snapshot $(QEMU_DISK_QCOW2)
 
@@ -82,23 +82,23 @@ run-qemu-iso:
 	# Make a disk to install to
 	[[ ! -e $(QEMU_DISK_RAW) ]] && dd if=/dev/null of=$(QEMU_DISK_RAW) bs=1M seek=20480
 
-	qemu-system-x86_64 \
-		-M accel=kvm \
-		-cpu host \
+	qemu-system-aarch64 \
+		-M virt \
+		-cpu cortex-a72 \
 		-smp 2 \
 		-m 4096 \
-		-bios /usr/share/OVMF/x64/OVMF.4m.fd \
+		-bios /usr/share/AAVMF/AAVMF_CODE.fd \
 		-serial stdio \
 		-boot d \
 		-cdrom $(QEMU_ISO) \
 		-hda $(QEMU_DISK_RAW)
 
 run-qemu:
-	qemu-system-x86_64 \
-		-M accel=kvm \
-		-cpu host \
+	qemu-system-aarch64 \
+		-M virt \
+		-cpu cortex-a72 \
 		-smp 2 \
 		-m 4096 \
-		-bios /usr/share/OVMF/x64/OVMF.4m.fd \
+		-bios /usr/share/AAVMF/AAVMF_CODE.fd \
 		-serial stdio \
 		-hda $(QEMU_DISK_RAW)

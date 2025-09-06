@@ -56,7 +56,7 @@ runs:
         REGISTRY_USER=${{ github.actor }}
         IMAGE_PATH=${{ github.repository_owner }}
         IMAGE_NAME="atomic-desktop"
-        PLATFORMS="amd64,amd64/v2"
+        PLATFORMS="arm64"
         VARIANTS="gnome,kde"
 
         echo "REGISTRY=${REGISTRY}" >> $GITHUB_OUTPUT
