@@ -62,11 +62,8 @@ jobs:
       image_path: ${{ needs.set-env.outputs.IMAGE_PATH }}
       registry: ${{ needs.set-env.outputs.REGISTRY }}
       registry_user: ${{ needs.set-env.outputs.REGISTRY_USER }}
-      KMS_KEY_ALIAS: atomicsig
-      AWS_REGION: us-east-1
     secrets:
-      REGISTRY_TOKEN: ${{ secrets.QUAY_PASSWORD }}
-      AWS_ROLE_ARN: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/atomicimages
+      REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     permissions:
       contents: read
       packages: write
@@ -92,7 +89,7 @@ jobs:
         run: |
           if [[ ! -d /tmp/changelogs ]]; then
             echo "No changelogs found, skipping release creation"
-            echo "skip=1" >> "$GITHUB_ENV"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
             exit
           fi
 
@@ -120,7 +117,7 @@ jobs:
           done
 
       - name: Create Release
-        if: ${{ env.skip != '1' }}
+        if: ${{ steps.prepare-release.outputs.skip != 'true' }}
         uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8 # v2
         with:
           name: "Version ${{ needs.build-test-promote.outputs.version }}"

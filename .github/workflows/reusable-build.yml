@@ -40,12 +40,6 @@ on:
       latest_tag:
         required: false
         type: string
-      KMS_KEY_ALIAS:
-        required: false
-        type: string
-      AWS_REGION:
-        required: false
-        type: string
     outputs:
       version:
         value: ${{ jobs.build-image.outputs.version }}
@@ -53,8 +47,6 @@ on:
       REGISTRY_TOKEN:
         required: true
       SIGNING_SECRET:
-        required: false
-      AWS_ROLE_ARN:
         required: false
 
 jobs:
@@ -108,13 +100,10 @@ jobs:
             - Glibc: <relver:glibc>
             - Bootc: <relver:bootc>
             - ${{ inputs.variant == 'gnome' && 'GNOME: <version:gdm>' || 'KDE: <version:plasma-desktop>' }}:
-      KMS_KEY_ALIAS: ${{ inputs.KMS_KEY_ALIAS }}
-      AWS_REGION: ${{ inputs.AWS_REGION }}
       generate-sbom: false
     secrets:
       REGISTRY_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
       SIGNING_SECRET: ${{ secrets.SIGNING_SECRET }}
-      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
     permissions:
       contents: read
       packages: write
