@@ -77,25 +77,43 @@ jobs:
 
     steps:
       - name: Fetch Changelogs
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v4
+        id: download-changelogs
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v4
         with:
           pattern: changelog-*
           merge-multiple: true
           path: /tmp/changelogs
 
+      - name: Fetch SBOMs
+        id: download-sbom
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v4
+        with:
+          pattern: "*.spdx.json"
+          merge-multiple: true
+          path: /tmp/sboms
+
+      - name: Compress SBOMs
+        id: compress-sbom
+        shell: bash
+        run: |
+          cd ${{ steps.download-sbom.outputs.download-path }}
+          for f in *.spdx.json; do
+            gzip -9 "$f"
+          done
+
       - name: Prepare Release
         id: prepare-release
         shell: bash
         run: |
-          if [[ ! -d /tmp/changelogs ]]; then
+          if [[ ! -d ${{ steps.download-changelogs.outputs.download-path }} ]]; then
             echo "No changelogs found, skipping release creation"
-            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "skip=1" >> "$GITHUB_ENV"
             exit
           fi
 
           echo "Automated release for version \`${{ needs.build-test-promote.outputs.version }}\`." > ./changelog.md
 
-          for changelog in /tmp/changelogs/*.txt; do
+          for changelog in ${{ steps.download-changelogs.outputs.download-path }}/*.txt; do
             # Remove empty Package Changes
             sed -i '/^#### Package Changes$/{
             N
@@ -117,10 +135,11 @@ jobs:
           done
 
       - name: Create Release
-        if: ${{ steps.prepare-release.outputs.skip != 'true' }}
-        uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8 # v2
+        if: ${{ env.skip != '1' }}
+        uses: softprops/action-gh-release@5be0e66d93ac7ed76da52eca8bb058f665c3a5fe # v2
         with:
           name: "Version ${{ needs.build-test-promote.outputs.version }}"
           tag_name: ${{ needs.build-test-promote.outputs.version }}
           body_path: ./changelog.md
           make_latest: true
+          files: "${{ steps.download-sbom.outputs.download-path }}/*.spdx.json.gz"
